@@ -1,5 +1,6 @@
+"""Test file for comparing all implemented algorithms"""
 from solver import ACOSolver, ElitistACOSolver, EnhancedACOSolver, HeuristicSolver
-from test_parser import CVRPTestParser
+from testset_parser import CVRPTestParser
 
 MAX_RANGE = 300
 NUMBER_OF_ITERATIONS = 200
@@ -8,7 +9,7 @@ BETA = 7
 EVAPORATE_FACTOR = 0.4
 PHEROMONES_FACTOR = 20
 
-def main():
+def main() -> None:
     """Test method comparing all implemented methods"""
     tests = ['A-n32-k5', 'A-n39-k5', 'A-n45-k7', 'A-n53-k7', 'A-n60-k9']
     seeds = [11174, 203019, 473, 22087, 121769]

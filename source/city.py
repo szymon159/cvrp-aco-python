@@ -3,16 +3,16 @@ import math
 
 class City:
     """Class representing a single city with its position and demand"""
-    def __init__(self, x, y, demand):
-        self.x = x
-        self.y = y
+    def __init__(self, x_pos: float, y_pos: float, demand: float) -> None:
+        self.x_pos = x_pos
+        self.y_pos = y_pos
         self.demand = demand
 
-    def __str__(self):
-        return F"Pos = ({self.x},{self.y}), demand = {self.demand}"
+    def __str__(self) -> str:
+        return F"Pos = ({self.x_pos},{self.y_pos}), demand = {self.demand}"
 
-    def distance(self, other):
+    def distance(self, other: "City") -> float:
         """Calculates distance to other city passed as other"""
-        dx = self.x - other.x
-        dy = self.y - other.y
-        return math.hypot(dx, dy)
+        d_x = self.x_pos - other.x_pos
+        d_y = self.y_pos - other.y_pos
+        return math.hypot(d_x, d_y)

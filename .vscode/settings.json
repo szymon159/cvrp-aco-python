@@ -1,5 +1,5 @@
 {
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
-    "python.linting.pylintArgs": ["--max-line-length=100"]
+    "python.linting.pylintArgs": ["--max-line-length=220"]
 }

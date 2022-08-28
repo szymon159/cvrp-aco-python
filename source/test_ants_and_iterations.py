@@ -1,5 +1,6 @@
+"""Test file for comparing different numbers of ants and iterations"""
 from solver import ACOSolver
-from test_parser import CVRPTestParser
+from testset_parser import CVRPTestParser
 
 MAX_RANGE = 300
 ALPHA = 1
@@ -8,7 +9,7 @@ NUMBER_OF_ITERATIONS = 1000
 PHEROMONES_FACTOR = 1
 EVAPORATE_FACTOR = 0.5
 
-def main():
+def main() -> None:
     """Test method for finding number of ants and iterations"""
     tests = ['A-n32-k5', 'A-n45-k7', 'A-n60-k9']
     seeds = [11174, 203019, 473, 22087, 121769]

@@ -4,14 +4,14 @@ from city import City
 
 class TestData:
     """Class representing testcase data parsed from input files"""
-    def __init__(self, truck_count, capacity, cities, optimal, solution):
+    def __init__(self, truck_count: int, capacity: int, cities: list[City], optimal: float, solution: list[list[int]]) -> None:
         self.truck_count = truck_count
         self.capacity = capacity
         self.cities = cities
         self.optimal = optimal
         self.solution = solution
 
-    def __str__(self):
+    def __str__(self) -> str:
         cities = '\n\t'.join([F'{i}. {city}' for i, city in enumerate(self.cities)])
         solution = '\n\t'.join([str(path) for path in self.solution])
         return F'''\
@@ -24,7 +24,7 @@ Optimal:{solution}'''
 class CVRPTestParser:
     """Class parsing testcase files to TestData"""
     @classmethod
-    def parse(cls, test_name):
+    def parse(cls, test_name: str) -> TestData:
         """Static method for parsing test files into instance of TestData class"""
         test_path = 'testsets/' + test_name
         with open(test_path + '.vrp', 'r', encoding='utf-8') as test_file:
@@ -47,4 +47,3 @@ class CVRPTestParser:
 
         test_data = TestData(int(truck_count), int(capacity), cities, int(optimal), paths)
         return test_data
-        

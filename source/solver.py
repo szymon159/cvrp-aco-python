@@ -2,12 +2,14 @@
 from abc import abstractmethod
 from random import Random
 import sys
-import numpy
 from timeit import default_timer as timer
+import numpy
+
+from city import City
 
 class BaseSolver:
     """Base class for a CVRP problem solver"""
-    def __init__(self, cities, max_capacity, max_range, number_of_trucks, seed):
+    def __init__(self, cities: list[City], max_capacity: int, max_range: int, number_of_trucks: int, seed: int) -> None:
         self.cities = cities
         self.max_capacity = max_capacity
         self.max_range = max_range
@@ -25,11 +27,11 @@ class BaseSolver:
         self.random = Random(self.seed)
 
     @abstractmethod
-    def solve(self, output = None):
+    def solve(self, output: str = None) -> None:
         """Triggers solving the problem and outputs analytics information to output if needed"""
         raise NotImplementedError('Solving not supported in the base class, use subclass instead')
 
-    def print_result(self):
+    def print_result(self) -> None:
         """Prints solver result"""
         print(self.get_algorithm_name())
         if not self.result:
@@ -41,11 +43,11 @@ class BaseSolver:
             print(F'O lacznej dlugosci: {self.route_length}')
 
     @abstractmethod
-    def get_algorithm_name(self):
+    def get_algorithm_name(self) -> str:
         """Return name of algorithm used by solver"""
         raise NotImplementedError('Algorithm name not supported in the base class, use subclass instead')
 
-    def _can_visit(self, target_id):
+    def _can_visit(self, target_id: int) -> bool:
         range_fulfilled = ((target_id == 0 and self._get_distance_to(target_id) <= self.rem_range)
             or self._get_distance_to(target_id) + self.distances[target_id, 0] <= self.rem_range)
         return (self.current_id != target_id
@@ -53,10 +55,10 @@ class BaseSolver:
                 and self.cities[target_id].demand <= self.rem_capacity
                 and range_fulfilled)
 
-    def _get_target_id(self, allowed_cities):
+    def _get_target_id(self, allowed_cities: list[int]) -> int:
         return min(allowed_cities, key=self._get_distance_to)
 
-    def _visit(self, target_id, route):
+    def _visit(self, target_id: int, route: list[int]) -> float:
         self.was_visited[target_id] += 1
         self.rem_capacity -= self.cities[target_id].demand
         self.rem_range -= self._get_distance_to(target_id)
@@ -68,13 +70,13 @@ class BaseSolver:
             self.rem_range = self.max_range
         return distance
 
-    def _check_all_visited(self):
+    def _check_all_visited(self) -> bool:
         return all(self.was_visited[1:])
 
-    def _get_distance_to(self, target_id):
+    def _get_distance_to(self, target_id: int) -> float:
         return self.distances[self.current_id, target_id]
 
-    def _find_route(self):
+    def _find_route(self) -> tuple[list[int], float]:
         route_length = 0
         route = [0]
         while not self._check_all_visited():
@@ -88,13 +90,13 @@ class BaseSolver:
         route_length = (route_length + self._visit(0, route) if self._can_visit(0) else -1)
         return (route, route_length)
 
-    def _update_result(self, route, route_length):
+    def _update_result(self, route: list[int], route_length: float) -> None:
         if route_length < self.route_length:
             self.route = route
             self.route_length = route_length
             self.result = True
 
-    def _split_route(self, route):
+    def _split_route(self, route: list[int]) -> list[list[int]]:
         result = []
         path = [route[0]]
         for value in route[1:]:
@@ -104,7 +106,7 @@ class BaseSolver:
                 path = [0]
         return result
 
-    def _get_route_length(self, route):
+    def _get_route_length(self, route: list[int]) -> float:
         length = 0
         for i, city_from in enumerate(route[:-1]):
             city_to = route[i + 1]
@@ -112,7 +114,7 @@ class BaseSolver:
         return length
 
     @staticmethod
-    def _calculate_distances(cities):
+    def _calculate_distances(cities: list[City]) -> numpy.ndarray:
         distances = numpy.zeros((len(cities), len(cities)))
         for i, city1 in enumerate(cities):
             for j, city2 in enumerate(cities):
@@ -122,11 +124,11 @@ class BaseSolver:
 
 class HeuristicSolver(BaseSolver):
     """Class implementing a solver for CVRP problem using heuristic algorithm"""
-    def __init__(self, cities, max_capacity, max_range, number_of_trucks, seed):
+    def __init__(self, cities: list[City], max_capacity: int, max_range: int, number_of_trucks: int, seed: int) -> None:
         super().__init__(cities, max_capacity, max_range, number_of_trucks, seed)
         self._current_route = [0]
 
-    def solve(self, output = None):
+    def solve(self, output: str = None) -> None:
         if output is not None:
             file = open(output, 'a', encoding='utf-8')
             file.write(F'{self.get_algorithm_name()}\n')
@@ -144,17 +146,17 @@ class HeuristicSolver(BaseSolver):
                 file.write(F'Time: {(end - start) * 1000} ms\n')
                 file.close()
 
-    def get_algorithm_name(self):
+    def get_algorithm_name(self) -> str:
         return 'Heuristic'
 
 class _AntSolution:
-    def __init__(self):
+    def __init__(self) -> None:
         self.current_route = [0]
         self.current_route_length = -1
         self.best_route = []
         self.best_route_length = sys.maxsize
 
-    def check_current_route(self):
+    def check_current_route(self) -> bool:
         """Checks if current solution is better than the best one and updates it if it is needed"""
         if (self.current_route_length == -1 or self.current_route_length >= self.best_route_length):
             return False
@@ -162,15 +164,15 @@ class _AntSolution:
         self.best_route_length = self.current_route_length
         return True
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets current route and solution"""
         self.current_route = [0]
         self.current_route_length = -1
 
 class ACOSolver(BaseSolver):
     """Class implementing a solver for CVRP problem using ACO"""
-    def __init__(self, cities, max_capacity, max_range, number_of_trucks, seed,
-                number_of_ants, alpha, beta, pheromones_factor, evaporate_factor, number_of_iterations):
+    def __init__(self, cities: list[City], max_capacity: int, max_range: int, number_of_trucks: int, seed: int,
+                number_of_ants: int, alpha: float, beta: float, pheromones_factor: float, evaporate_factor: float, number_of_iterations: int) -> None:
         super().__init__(cities, max_capacity, max_range, number_of_trucks, seed)
         self.number_of_ants = number_of_ants
         self.alpha = alpha
@@ -182,7 +184,7 @@ class ACOSolver(BaseSolver):
         self.current_ant_id = 0
         self.ants = [_AntSolution() for _ in range(number_of_ants)]
 
-    def solve(self, output = None):
+    def solve(self, output: str = None) -> None:
         if output is not None:
             file = open(output, 'a', encoding='utf-8')
             file.write(F'{self.get_algorithm_name()}\n')
@@ -205,10 +207,10 @@ class ACOSolver(BaseSolver):
                 file.write(F'Time: {(end - start) * 1000} ms\n')
                 file.close()
 
-    def get_algorithm_name(self):
+    def get_algorithm_name(self) -> str:
         return 'ACO'
 
-    def _get_target_id(self, allowed_cities):
+    def _get_target_id(self, allowed_cities: list[int]) -> int:
         weights = []
         for city in allowed_cities:
             if self._get_distance_to(city) == 0:
@@ -220,7 +222,7 @@ class ACOSolver(BaseSolver):
             weights = None
         return self.random.choices(allowed_cities, weights, k = 1)[0]
 
-    def _lay_pheromones(self, route, factor = None):
+    def _lay_pheromones(self, route: list[int], factor: float = None) -> None:
         if factor is None:
             factor = self.pheromones_factor
         if len(route) <= 0:
@@ -231,7 +233,7 @@ class ACOSolver(BaseSolver):
             if city_from != city_to:
                 self.pheromones[city_from, city_to] += factor / self._get_route_length(route)
 
-    def _update_pheromones(self):
+    def _update_pheromones(self) -> None:
         for i in range(len(self.cities)):
             for j in range(len(self.cities)):
                 if i != j:
@@ -239,17 +241,17 @@ class ACOSolver(BaseSolver):
 
 class ElitistACOSolver(ACOSolver):
     """Class implementing a solver for CVRP problem using ACO with elitist ants"""
-    def __init__(self, cities, max_capacity, max_range, number_of_trucks, seed,
-                number_of_ants, alpha, beta, pheromones_factor, evaporate_factor, number_of_iterations,
-                number_of_elitist_ants):
+    def __init__(self, cities: list[City], max_capacity: int, max_range: int, number_of_trucks: int, seed: int,
+                number_of_ants: int, alpha: float, beta: float, pheromones_factor: float, evaporate_factor: float, number_of_iterations: int,
+                number_of_elitist_ants: int) -> None:
         super().__init__(cities, max_capacity, max_range, number_of_trucks, seed,
                         number_of_ants, alpha, beta, pheromones_factor, evaporate_factor, number_of_iterations)
         self.number_of_elitist_ants = number_of_elitist_ants
 
-    def get_algorithm_name(self):
+    def get_algorithm_name(self) -> str:
         return 'Elitist'
 
-    def _update_pheromones(self):
+    def _update_pheromones(self) -> None:
         super()._update_pheromones()
         if len(self.route) > 0:
             self._lay_pheromones(self.route, self.number_of_elitist_ants * self.pheromones_factor)
@@ -258,18 +260,18 @@ class ElitistACOSolver(ACOSolver):
 
 class EnhancedACOSolver(ACOSolver):
     """Class implementing a solver for CVRP problem using ACO with inversion of subpaths"""
-    def _find_route(self):
+    def _find_route(self) -> tuple[list[int], float]:
         (base_route, base_route_length) = super()._find_route()
         if base_route_length <= 0:
             return (base_route, base_route_length)
         return self.__reverse_subpaths(base_route)
 
-    def get_algorithm_name(self):
+    def get_algorithm_name(self) -> str:
         return 'Enhanced'
 
-    def __reverse_subpaths(self, base_route):
+    def __reverse_subpaths(self, base_route: list[int]) -> tuple[list[int], float]:
         best_route, best_length = [0], 0
-        paths = [path for path in self._split_route(base_route)]
+        paths = self._split_route(base_route)
         lengths = [self._get_route_length(path) for path in paths]
         for i, path in enumerate(paths):
             if len(path) <= 3:

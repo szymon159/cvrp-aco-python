@@ -1,5 +1,6 @@
+"""Test file for comparing different values of evaporation factor"""
 from solver import ACOSolver
-from test_parser import CVRPTestParser
+from testset_parser import CVRPTestParser
 
 MAX_RANGE = 300
 NUMBER_OF_ITERATIONS = 200
@@ -7,7 +8,7 @@ PHEROMONES_FACTOR = 1
 ALPHA = 1
 BETA = 7
 
-def main():
+def main() -> None:
     """Test method for finding value of \u03C1 factor"""
     tests = ['A-n32-k5', 'A-n45-k7', 'A-n60-k9']
     seeds = [11174, 203019, 473, 22087, 121769]
